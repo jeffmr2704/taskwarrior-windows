@@ -53,14 +53,18 @@ jobs:
 
       - name: Build Taskwarrior
         run: |
-          cmake --build C:\tw_b --config Release --target task
+          cmake --build C:\tw_b --config Release --target task_executable
 
-      - name: Verify Version
+      - name: Verify and Upload Artifact
         run: |
-          C:\tw_b\src\Release\task.exe --version
+          $taskExe = Get-ChildItem -Path C:\tw_b -Filter task.exe -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $taskExe) { throw "task.exe not found!" }
+          Write-Output "Found task.exe at: $taskExe"
+          & $taskExe --version
+          echo "TASK_EXE_PATH=$taskExe" >> $env:GITHUB_ENV
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: taskwarrior-windows-x64
-          path: C:\tw_b\src\Release\task.exe
+          path: ${{ env.TASK_EXE_PATH }}
