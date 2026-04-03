@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
     
     env:
       CARGO_HOME: "C:\\c_h"
@@ -49,7 +49,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S . -B C:\tw_b -G "Visual Studio 16 2019" -A x64
+          cmake -S . -B C:\tw_b -G "Visual Studio 17 2022" -A x64
 
       - name: Build Taskwarrior
         run: |
