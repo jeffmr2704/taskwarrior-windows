@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "src/taskchampion-cpp",
+]
+
+resolver = "2"

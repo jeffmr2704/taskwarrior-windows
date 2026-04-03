@@ -1,0 +1,13 @@
+cmake.h
+commit.h
+.cache
+*~
+.*.swp
+Session.vim
+package-config/osx/binary/task
+/*build*/
+patches
+tutorials
+.prove
+/target/
+/.idea/

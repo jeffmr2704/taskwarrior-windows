@@ -1,0 +1,66 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-2019
+    
+    env:
+      CARGO_HOME: "C:\\c_h"
+      CARGO_TARGET_DIR: "C:\\tw_t"
+      CFLAGS: "/std:c11 /experimental:c11atomics"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Enable Long Paths
+        run: |
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1
+          git config --global core.longpaths true
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\c_h
+            C:\tw_t
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Create Short Directories
+        run: |
+          mkdir C:\c_h -ErrorAction SilentlyContinue
+          mkdir C:\tw_t -ErrorAction SilentlyContinue
+          mkdir C:\tw_b -ErrorAction SilentlyContinue
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B C:\tw_b -G "Visual Studio 16 2019" -A x64
+
+      - name: Build Taskwarrior
+        run: |
+          cmake --build C:\tw_b --config Release --target task
+
+      - name: Verify Version
+        run: |
+          C:\tw_b\src\Release\task.exe --version
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: taskwarrior-windows-x64
+          path: C:\tw_b\src\Release\task.exe
