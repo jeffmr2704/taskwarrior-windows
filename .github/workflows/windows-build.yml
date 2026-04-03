@@ -60,11 +60,25 @@ jobs:
           $taskExe = Get-ChildItem -Path C:\tw_b -Filter task.exe -Recurse | Select-Object -First 1 -ExpandProperty FullName
           if (-not $taskExe) { throw "task.exe not found!" }
           Write-Output "Found task.exe at: $taskExe"
-          & $taskExe --version
+          $version = & $taskExe --version
+          Write-Output "Taskwarrior version: $version"
           echo "TASK_EXE_PATH=$taskExe" >> $env:GITHUB_ENV
+          echo "TASK_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: taskwarrior-windows-x64
           path: ${{ env.TASK_EXE_PATH }}
+
+      - name: Create Release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TASK_VERSION }}-${{ github.run_number }}
+          name: Taskwarrior Windows ${{ env.TASK_VERSION }} (Build ${{ github.run_number }})
+          files: ${{ env.TASK_EXE_PATH }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
